@@ -9,6 +9,7 @@ from telegram.ext import (
 )
 
 import config
+import database as db
 from handlers import (
     economy,
     whisper,
@@ -113,18 +114,6 @@ CATEGORY_LABELS = {
 
 # --- Level 1: the /start screen (matches BAKA FEATURES / Groups / Promoter / Updates / Games / Add me) ---
 
-STATS_TEXT = (
-    "💙 Hi! I'm BTS — a gaming and chatting bot with lots of features to engage your group.\n\n"
-    "🕹️ HOW TO PLAY?\n"
-    "/bal - check your stats\n"
-    "/pfp - check your pfp\n"
-    "/daily - get free coins\n"
-    "/protect - save yourself\n"
-    "/kill & /rob - loot others\n\n"
-    "👇 Choose an option below:"
-)
-
-
 def build_start_menu() -> InlineKeyboardMarkup:
     rows = [
         [InlineKeyboardButton("🍀 BTS FEATURES", callback_data="menu:features")],
@@ -154,8 +143,31 @@ def build_features_menu() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(rows)
 
 
+async def build_start_text(tg_user) -> str:
+    user = await db.get_user(tg_user.id, tg_user.username or "")
+    rank = await db.get_rank(tg_user.id)
+    name = tg_user.first_name or "there"
+    return (
+        f"💙 Hieeeee {name}, I'm BTS - a gaming and chatting bot having lots of "
+        "features to engage your group.\n\n"
+        "📊 Your stats:\n"
+        f"💰 Balance: {user['balance']}\n"
+        f"🏆 Rank: {rank}\n"
+        f"💎 Gems: {user['gems']:.2f}\n"
+        f"🔪 Kills: {user['kills']}\n\n"
+        "🕹️ How to play?\n"
+        "💰 /bal - check your stats\n"
+        "👤 /pfp - check your pfp\n"
+        "🎁 /daily - get free coins\n"
+        "🛡️ /protect - save yourself\n"
+        "⚔️ /kill & /rob - loot others\n\n"
+        "👇 Choose an option below:"
+    )
+
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(STATS_TEXT, reply_markup=build_start_menu())
+    text = await build_start_text(update.effective_user)
+    await update.message.reply_text(text, reply_markup=build_start_menu())
 
 
 async def menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -165,7 +177,8 @@ async def menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Back to the very first /start screen
     if data == "back":
-        await query.edit_message_text(STATS_TEXT, reply_markup=build_start_menu())
+        text = await build_start_text(query.from_user)
+        await query.edit_message_text(text, reply_markup=build_start_menu())
         return
 
     # "BTS FEATURES" tapped -> show the 12-category grid
