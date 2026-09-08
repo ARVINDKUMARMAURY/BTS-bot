@@ -14,6 +14,7 @@ db = client[DB_NAME]
 users = db["users"]
 coupons = db["coupons"]        # {code, reward, uses_left, redeemed_by: [user_id,...]}
 group_promos = db["group_promos"]  # {position, name, link} - set via /setgroup by top 5
+group_members = db["group_members"]  # {_id: f"{chat_id}:{user_id}", chat_id, user_id, name}
 
 
 def default_user(user_id: int, username: str = "") -> dict:
@@ -73,3 +74,18 @@ async def get_top_richest(limit: int = 5):
 async def is_top5(user_id: int) -> bool:
     top5 = await get_top_richest(5)
     return any(u["_id"] == user_id for u in top5)
+
+
+async def track_group_member(chat_id: int, user_id: int, name: str):
+    """Remembers that this user has been seen active in this group (for /couples)."""
+    await group_members.update_one(
+        {"_id": f"{chat_id}:{user_id}"},
+        {"$set": {"chat_id": chat_id, "user_id": user_id, "name": name}},
+        upsert=True,
+    )
+
+
+async def get_group_members(chat_id: int, limit: int = 200) -> list:
+    cursor = group_members.find({"chat_id": chat_id}).limit(limit)
+    docs = [m async for m in cursor]
+    return [{"_id": m["user_id"], "name": m["name"]} for m in docs]

@@ -5,7 +5,9 @@ from telegram.ext import (
     Application,
     CommandHandler,
     CallbackQueryHandler,
+    MessageHandler,
     ContextTypes,
+    filters,
 )
 
 import config
@@ -87,7 +89,11 @@ CATEGORY_TEXTS = {
     ),
     "interactions": (
         "💞 INTERACTIONS\n\n"
-        + "\n".join(f"/{a} - reply to someone" for a in interactions.ACTIONS)
+        + "\n".join(f"/{a} (reply)" for a in interactions.ACTIONS)
+        + "\n/crush (reply) - check replied user's crush meter"
+        + "\n/brain (reply) - check someone's brain"
+        + "\n/stupid_meter (reply) - check how stupid someone is"
+        + "\n/couples - choose random couples from the group"
     ),
     "utilities": (
         "🔧 UTILITIES\n\n"
@@ -205,6 +211,14 @@ async def menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await query.edit_message_text(text, reply_markup=back_button)
 
 
+async def track_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Silently remembers active group members so /couples has a pool to pick from."""
+    user = update.effective_user
+    chat = update.effective_chat
+    if user and chat and chat.type in ("group", "supergroup") and not user.is_bot:
+        await db.track_group_member(chat.id, user.id, user.full_name)
+
+
 def main():
     if not config.BOT_TOKEN:
         raise RuntimeError("BOT_TOKEN is not set. Add it to your .env file.")
@@ -267,7 +281,16 @@ def main():
     # Interactions
     for action in interactions.ACTIONS:
         app.add_handler(CommandHandler(action, interactions.make_handler(action)))
+    app.add_handler(CommandHandler("crush", interactions.crush))
+    app.add_handler(CommandHandler("brain", interactions.brain))
+    app.add_handler(CommandHandler("stupid_meter", interactions.stupid_meter))
+    app.add_handler(CommandHandler("couples", interactions.couples))
     app.add_handler(CommandHandler("interactions", interactions.interactions_info))
+
+    # Track group members for /couples (runs on every group text message, lowest priority group)
+    app.add_handler(
+        MessageHandler(filters.ChatType.GROUPS & filters.TEXT, track_member), group=1
+    )
 
     # Utilities
     app.add_handler(CommandHandler("ping", utilities.ping))
