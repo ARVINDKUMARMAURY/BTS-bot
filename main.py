@@ -111,6 +111,39 @@ CATEGORY_LABELS = {
 }
 
 
+# --- Level 1: the /start screen (matches BAKA FEATURES / Groups / Promoter / Updates / Games / Add me) ---
+
+STATS_TEXT = (
+    "💙 Hi! I'm BTS — a gaming and chatting bot with lots of features to engage your group.\n\n"
+    "🕹️ HOW TO PLAY?\n"
+    "/bal - check your stats\n"
+    "/pfp - check your pfp\n"
+    "/daily - get free coins\n"
+    "/protect - save yourself\n"
+    "/kill & /rob - loot others\n\n"
+    "👇 Choose an option below:"
+)
+
+
+def build_start_menu() -> InlineKeyboardMarkup:
+    rows = [
+        [InlineKeyboardButton("🍀 BTS FEATURES", callback_data="menu:features")],
+        [
+            InlineKeyboardButton("👥 GROUPS", callback_data="menu:groups"),
+            InlineKeyboardButton("💸 PROMOTER", url="https://t.me/"),
+        ],
+        [
+            InlineKeyboardButton("📢 UPDATES", url="https://t.me/"),
+            InlineKeyboardButton("🎮 GAMES", callback_data="menu:games"),
+        ],
+        [InlineKeyboardButton("➕ ADD ME TO YOUR GROUP", url="https://t.me/your_bts_bot?startgroup=true")],
+    ]
+    return InlineKeyboardMarkup(rows)
+
+
+# --- Level 2: the BTS FEATURES grid (Whisper / Management / Ownership / ... / Utilities) ---
+
+
 def build_features_menu() -> InlineKeyboardMarkup:
     keys = list(CATEGORY_LABELS.keys())
     rows = []
@@ -122,11 +155,7 @@ def build_features_menu() -> InlineKeyboardMarkup:
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    text = (
-        "💙 Hi! I'm BTS — a gaming and economy bot with lots of features to engage your group.\n\n"
-        "Click the buttons below to know more about each feature category."
-    )
-    await update.message.reply_text(text, reply_markup=build_features_menu())
+    await update.message.reply_text(STATS_TEXT, reply_markup=build_start_menu())
 
 
 async def menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -134,14 +163,32 @@ async def menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await query.answer()
     data = query.data.split(":", 1)[1]
 
+    # Back to the very first /start screen
     if data == "back":
+        await query.edit_message_text(STATS_TEXT, reply_markup=build_start_menu())
+        return
+
+    # "BTS FEATURES" tapped -> show the 12-category grid
+    if data == "features":
         await query.edit_message_text(
-            "💙 Choose a feature category:", reply_markup=build_features_menu()
+            "ℹ️ ABOUT BTS\n\nClick the buttons below to know more about BTS features.",
+            reply_markup=build_features_menu(),
         )
         return
 
+    # "GAMES" tapped from the level-1 menu -> same as the games category info
+    if data == "groups":
+        text = "👥 Use /groups in chat to see currently featured groups, or /setgroup if you're top 5 richest."
+        await query.edit_message_text(
+            text, reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="menu:back")]])
+        )
+        return
+
+    # A specific category from the features grid
     text = CATEGORY_TEXTS.get(data, f"{CATEGORY_LABELS.get(data, data)}: no info available.")
-    back_button = InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="menu:back")]])
+    back_button = InlineKeyboardMarkup(
+        [[InlineKeyboardButton("⬅️ Back to features", callback_data="menu:features")]]
+    )
     await query.edit_message_text(text, reply_markup=back_button)
 
 
