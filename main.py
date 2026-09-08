@@ -37,10 +37,10 @@ CATEGORY_TEXTS = {
         "(They must have started a DM with the bot at least once.)"
     ),
     "management": (
-        "👮 MANAGEMENT (group admins only)\n\n"
-        "/mute - reply to mute a user\n"
-        "/unmute - reply to unmute a user\n"
-        "/warn <reason> - reply to warn a user"
+        "👮 MANAGEMENT (group admins / granted powers)\n\n"
+        "Use '.' or '!' as prefix, e.g. .ban, !mute\n"
+        ".ban .kick .mute .warn .promote .demote .pin .d and more\n"
+        "Send .help in the group for the full command list"
     ),
     "ownership": (
         "👑 OWNERSHIP\n\n"
@@ -242,9 +242,9 @@ def main():
     app.add_handler(CommandHandler("whisper", whisper.whisper))
 
     # Management
-    app.add_handler(CommandHandler("mute", management.mute))
-    app.add_handler(CommandHandler("unmute", management.unmute))
-    app.add_handler(CommandHandler("warn", management.warn))
+    app.add_handler(
+        MessageHandler(filters.Regex(r"^[.!]\w") & filters.ChatType.GROUPS, management.dot_command_dispatcher)
+    )
     app.add_handler(CommandHandler("management", management.management_info))
 
     # Ownership

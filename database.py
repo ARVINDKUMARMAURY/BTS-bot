@@ -89,3 +89,73 @@ async def get_group_members(chat_id: int, limit: int = 200) -> list:
     cursor = group_members.find({"chat_id": chat_id}).limit(limit)
     docs = [m async for m in cursor]
     return [{"_id": m["user_id"], "name": m["name"]} for m in docs]
+
+
+# --- Management module: bot-granted powers, bot-promoted admins, warnings ---
+
+admin_powers = db["admin_powers"]        # {_id: "chat:user", chat_id, user_id, powers: [str,...]}
+promoted_admins = db["promoted_admins"]  # {_id: "chat:user", chat_id, user_id} - promoted via .promote
+warnings = db["warnings"]                # {_id: "chat:user", chat_id, user_id, count}
+
+
+async def add_power(chat_id: int, user_id: int, power: str):
+    await admin_powers.update_one(
+        {"_id": f"{chat_id}:{user_id}"},
+        {"$set": {"chat_id": chat_id, "user_id": user_id}, "$addToSet": {"powers": power}},
+        upsert=True,
+    )
+
+
+async def remove_power(chat_id: int, user_id: int, power: str):
+    await admin_powers.update_one(
+        {"_id": f"{chat_id}:{user_id}"}, {"$pull": {"powers": power}}
+    )
+
+
+async def get_powers(chat_id: int, user_id: int) -> list:
+    doc = await admin_powers.find_one({"_id": f"{chat_id}:{user_id}"})
+    return doc.get("powers", []) if doc else []
+
+
+async def record_promoted(chat_id: int, user_id: int):
+    await promoted_admins.update_one(
+        {"_id": f"{chat_id}:{user_id}"},
+        {"$set": {"chat_id": chat_id, "user_id": user_id}},
+        upsert=True,
+    )
+
+
+async def unrecord_promoted(chat_id: int, user_id: int):
+    await promoted_admins.delete_one({"_id": f"{chat_id}:{user_id}"})
+
+
+async def get_promoted(chat_id: int) -> list:
+    cursor = promoted_admins.find({"chat_id": chat_id})
+    return [d["user_id"] async for d in cursor]
+
+
+async def warn_user(chat_id: int, user_id: int) -> int:
+    doc = await warnings.find_one_and_update(
+        {"_id": f"{chat_id}:{user_id}"},
+        {"$inc": {"count": 1}, "$set": {"chat_id": chat_id, "user_id": user_id}},
+        upsert=True,
+        return_document=True,
+    )
+    return doc["count"]
+
+
+async def unwarn_user(chat_id: int, user_id: int) -> int:
+    doc = await warnings.find_one({"_id": f"{chat_id}:{user_id}"})
+    if not doc or doc.get("count", 0) <= 0:
+        return 0
+    await warnings.update_one({"_id": f"{chat_id}:{user_id}"}, {"$inc": {"count": -1}})
+    return doc["count"] - 1
+
+
+async def reset_warns(chat_id: int, user_id: int):
+    await warnings.update_one({"_id": f"{chat_id}:{user_id}"}, {"$set": {"count": 0}})
+
+
+async def get_warns(chat_id: int, user_id: int) -> int:
+    doc = await warnings.find_one({"_id": f"{chat_id}:{user_id}"})
+    return doc.get("count", 0) if doc else 0

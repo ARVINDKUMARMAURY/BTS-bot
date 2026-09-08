@@ -19,3 +19,8 @@ ROB_MAX_STEAL_PCT = 0.20
 PROTECTION_COST = 150
 PROTECTION_DURATION_HOURS = 12
 STARTING_BALANCE = 300
+
+# Management module
+ALL_POWERS = ["ban", "mute", "kick", "warn", "pin", "promote", "title", "res"]
+MAX_WARNS = 3  # 3rd warning auto-bans
+

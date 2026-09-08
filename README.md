@@ -43,7 +43,7 @@ Notes:
 |---|---|
 | 💰 Economy | `/bal /daily /protect /kill /rob /economy` |
 | 🤫 Whisper | `/whisper <text>` (reply to someone) |
-| 👮 Management | `/mute /unmute /warn` (group admins only) |
+| 👮 Management | `.ban .kick .mute .warn .promote .demote .pin .d` etc — prefix `.` or `!` |
 | 👑 Ownership | `/setgroup /groups` (top-5 richest only can set) |
 | 💗 Premium | `/buypremium /premiumstatus` |
 | 💎 Gems | `/gems /exchange <coins>` |
@@ -82,7 +82,47 @@ bts_bot/
 └── .env.example
 ```
 
-## Notes
+## Group Management module (`.` / `!` prefix)
+
+Unlike every other feature (which uses normal `/commands`), Management uses a dot or bang
+prefix — same style as BAKA. Send `.help` in any group the bot is in to see the full list:
+
+```
+.res <user> +-power_name   - restrict/unrestrict one permission for a member
+.add <user> <power>        - grant a bot power to a user (creator only)
+.remove <user> <power>     - remove a bot power from a user (creator only)
+
+.promote <user> 0/1/2/3    - promote user to admin (higher = more rights)
+.demote <user>             - demote an admin
+.demote_all                - demote all BTS-promoted admins
+.title <user> <title>      - set an admin's custom title
+
+.warns <user>               - get all warnings
+.warn <user>                - warn a user (3 = ban)
+.unwarn <user>               - remove 1 warning
+
+.mute <user> [30m]          - mute temp/permanent
+.dmute <reply> [time]       - delete replied message and mute user
+.smute <user>                - silently mute the user
+.unmute <user>                - unmute the user
+
+.ban <user>       .dban <reply>      .sban <user>      .unban <user>
+.kick <user>      .skick <user>
+
+.pin <reply>      .unpin      .d (reply)      .help
+```
+
+`<user>` = reply to their message, `@username`, or numeric user ID.
+
+Bot powers (`ban`, `mute`, `kick`, `warn`, `pin`, `promote`, `title`, `res`) can be granted to
+non-admins via `.add` — only the group creator (or a configured `OWNER_ID`) can grant/revoke
+these. Real Telegram admins always have every power automatically.
+
+**Important:** for `.promote`, `.demote`, `.title`, `.pin`, `.ban`, `.mute`, etc. to actually work,
+the bot itself must be a group admin with the matching Telegram permissions
+(Ban users, Delete messages, Pin messages, Add new admins).
+
+
 
 - Every user auto-registers in MongoDB on first command with 300 starting coins.
 - `/kill` and `/rob` respect `/protect` — a protected target can't be attacked.
