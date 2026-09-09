@@ -50,10 +50,36 @@ CATEGORY_TEXTS = {
         "(They must have started a DM with the bot at least once.)"
     ),
     "management": (
-        "👮 MANAGEMENT (group admins / granted powers)\n\n"
-        "Use '.' or '!' as prefix, e.g. .ban, !mute\n"
-        ".ban .kick .mute .warn .promote .demote .pin .d and more\n"
-        "Send .help in the group for the full command list"
+        f"👮 {sc('MANAGEMENT')} ({sc('group admins / granted powers')})\n\n"
+        f"{sc('Use dot or bang as prefix, e.g. .ban, !mute')}\n\n"
+        "<blockquote>"
+        ".res &lt;user&gt; +-power_name\n"
+        ".add &lt;user&gt; &lt;power&gt;\n"
+        ".remove &lt;user&gt; &lt;power&gt;\n"
+        ".promote &lt;user&gt; 0/1/2/3\n"
+        ".demote &lt;user&gt;\n"
+        ".demote_all\n"
+        ".title &lt;user&gt; &lt;title&gt;\n"
+        ".warns &lt;user&gt;\n"
+        ".warn &lt;user&gt;\n"
+        ".unwarn &lt;user&gt;\n"
+        ".mute &lt;user&gt; [30m]\n"
+        ".dmute &lt;reply&gt; [time]\n"
+        ".smute &lt;user&gt;\n"
+        ".unmute &lt;user&gt;\n"
+        ".ban &lt;user&gt;\n"
+        ".dban &lt;reply&gt;\n"
+        ".sban &lt;user&gt;\n"
+        ".unban &lt;user&gt;\n"
+        ".kick &lt;user&gt;\n"
+        ".skick &lt;user&gt;\n"
+        ".pin &lt;reply&gt;\n"
+        ".unpin\n"
+        ".d &lt;reply&gt;\n"
+        ".help"
+        "</blockquote>\n\n"
+        f"{sc('user = reply, @username, or numeric ID')}\n"
+        f"{sc('Send .help in the group anytime for this same list.')}"
     ),
     "ownership": (
         "👑 OWNERSHIP\n\n"
@@ -231,7 +257,9 @@ async def menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     back_button = InlineKeyboardMarkup(
         [[InlineKeyboardButton(f"⬅️ {sc('Back to features')}", callback_data="menu:features")]]
     )
-    await query.edit_message_text(text, reply_markup=back_button)
+    await query.edit_message_text(
+        text, reply_markup=back_button, parse_mode=ParseMode.HTML if data == "management" else None
+    )
 
 
 async def track_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
