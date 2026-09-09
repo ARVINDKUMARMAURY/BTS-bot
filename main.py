@@ -154,25 +154,36 @@ def build_features_menu() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(rows)
 
 
+SMALL_CAPS_MAP = str.maketrans(
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
+    "ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘǫʀꜱᴛᴜᴠᴡxʏᴢᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘǫʀꜱᴛᴜᴠᴡxʏᴢ",
+)
+
+
+def sc(text: str) -> str:
+    """Convert plain ASCII letters to small-caps unicode for a stylized look."""
+    return text.translate(SMALL_CAPS_MAP)
+
+
 async def build_start_text(tg_user) -> str:
     user = await db.get_user(tg_user.id, tg_user.username or "")
     rank = await db.get_rank(tg_user.id)
     name = tg_user.first_name or "there"
+    intro = sc("I'm BTS - a gaming and chatting bot having lots of features to engage your group.")
     return (
-        f"💙 Hieeeee {name}, I'm BTS - a gaming and chatting bot having lots of "
-        "features to engage your group.\n\n"
-        "📊 Your stats:\n"
-        f"💰 Balance: {user['balance']}\n"
-        f"🏆 Rank: {rank}\n"
-        f"💎 Gems: {user['gems']:.2f}\n"
-        f"🔪 Kills: {user['kills']}\n\n"
-        "🕹️ How to play?\n"
-        "💰 /bal - check your stats\n"
-        "👤 /pfp - check your pfp\n"
-        "🎁 /daily - get free coins\n"
-        "🛡️ /protect - save yourself\n"
-        "⚔️ /kill & /rob - loot others\n\n"
-        "👇 Choose an option below:"
+        f"💙 {sc('Hieeeee')} {name}, {intro}\n\n"
+        f"📊 {sc('Your stats:')}\n"
+        f"💰 {sc('Balance')}: {user['balance']}\n"
+        f"🏆 {sc('Rank')}: {rank}\n"
+        f"💎 {sc('Gems')}: {user['gems']:.2f}\n"
+        f"🔪 {sc('Kills')}: {user['kills']}\n\n"
+        f"🕹️ {sc('How to play?')}\n"
+        f"💰 /bal - {sc('check your stats')}\n"
+        f"👤 /pfp - {sc('check your pfp')}\n"
+        f"🎁 /daily - {sc('get free coins')}\n"
+        f"🛡️ /protect - {sc('save yourself')}\n"
+        f"⚔️ /kill & /rob - {sc('loot others')}\n\n"
+        f"👇 {sc('Choose an option below:')}"
     )
 
 
