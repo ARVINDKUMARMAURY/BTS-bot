@@ -1,6 +1,8 @@
 import logging
+import html
 
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.constants import ParseMode
 from telegram.ext import (
     Application,
     CommandHandler,
@@ -168,15 +170,20 @@ def build_features_menu() -> InlineKeyboardMarkup:
 async def build_start_text(tg_user) -> str:
     user = await db.get_user(tg_user.id, tg_user.username or "")
     rank = await db.get_rank(tg_user.id)
-    name = tg_user.first_name or "there"
+    name = html.escape(tg_user.first_name or "there")
     intro = sc("I'm BTS - a gaming and chatting bot having lots of features to engage your group.")
-    return (
-        f"💙 {sc('Hieeeee')} {name}, {intro}\n\n"
-        f"📊 {sc('Your stats:')}\n"
+    stats_block = (
+        "<blockquote>"
         f"💰 {sc('Balance')}: {user['balance']}\n"
         f"🏆 {sc('Rank')}: {rank}\n"
         f"💎 {sc('Gems')}: {user['gems']:.2f}\n"
-        f"🔪 {sc('Kills')}: {user['kills']}\n\n"
+        f"🔪 {sc('Kills')}: {user['kills']}"
+        "</blockquote>"
+    )
+    return (
+        f"💙 {sc('Hieeeee')} {name}, {intro}\n\n"
+        f"📊 {sc('Your stats:')}\n"
+        f"{stats_block}\n\n"
         f"🕹️ {sc('How to play?')}\n"
         f"💰 /bal - {sc('check your stats')}\n"
         f"👤 /pfp - {sc('check your pfp')}\n"
@@ -189,7 +196,7 @@ async def build_start_text(tg_user) -> str:
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = await build_start_text(update.effective_user)
-    await update.message.reply_text(text, reply_markup=build_start_menu())
+    await update.message.reply_text(text, reply_markup=build_start_menu(), parse_mode=ParseMode.HTML)
 
 
 async def menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -200,7 +207,7 @@ async def menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Back to the very first /start screen
     if data == "back":
         text = await build_start_text(query.from_user)
-        await query.edit_message_text(text, reply_markup=build_start_menu())
+        await query.edit_message_text(text, reply_markup=build_start_menu(), parse_mode=ParseMode.HTML)
         return
 
     # "BTS FEATURES" tapped -> show the 12-category grid

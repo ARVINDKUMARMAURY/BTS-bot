@@ -2,6 +2,7 @@ import random
 import datetime
 
 from telegram import Update
+from telegram.constants import ParseMode
 from telegram.ext import ContextTypes
 
 import database as db
@@ -18,12 +19,14 @@ async def bal(update: Update, context: ContextTypes.DEFAULT_TYPE):
     rank = await db.get_rank(tg_user.id)
     text = (
         "📊 YOUR STATS:\n"
+        "<blockquote>"
         f"💰 Balance: {user['balance']}\n"
         f"🏆 Rank: {rank}\n"
         f"💎 Gems: {user['gems']:.2f}\n"
         f"🔪 Kills: {user['kills']}"
+        "</blockquote>"
     )
-    await update.message.reply_text(text)
+    await update.message.reply_text(text, parse_mode=ParseMode.HTML)
 
 
 async def pfp(update: Update, context: ContextTypes.DEFAULT_TYPE):
