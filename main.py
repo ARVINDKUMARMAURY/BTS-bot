@@ -45,7 +45,12 @@ CATEGORY_TEXTS = {
     "ownership": (
         "👑 OWNERSHIP\n\n"
         "/setgroup <link> <name> - top 5 richest users only, feature your group\n"
-        "/groups - see currently featured groups"
+        "/groups - see currently featured groups\n\n"
+        "✅ ACCOUNT RECOVERY\n"
+        "/setpass <password> - secure your current account data\n"
+        "/mpass - get your password in DM if you forget it\n"
+        "/cpass <old_pass> <new_pass> - change your password\n"
+        "/transfer <old_id> <old_pass> - restore a deleted account's stats into this one"
     ),
     "premium": (
         f"💗 PREMIUM\n\n"
@@ -250,6 +255,10 @@ def main():
     # Ownership
     app.add_handler(CommandHandler("setgroup", ownership.setgroup))
     app.add_handler(CommandHandler("groups", ownership.groups))
+    app.add_handler(CommandHandler("setpass", ownership.setpass))
+    app.add_handler(CommandHandler("mpass", ownership.mpass))
+    app.add_handler(CommandHandler("cpass", ownership.cpass))
+    app.add_handler(CommandHandler("transfer", ownership.transfer))
     app.add_handler(CommandHandler("ownership", ownership.ownership_info))
 
     # Premium

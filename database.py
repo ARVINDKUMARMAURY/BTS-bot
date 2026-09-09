@@ -159,3 +159,32 @@ async def reset_warns(chat_id: int, user_id: int):
 async def get_warns(chat_id: int, user_id: int) -> int:
     doc = await warnings.find_one({"_id": f"{chat_id}:{user_id}"})
     return doc.get("count", 0) if doc else 0
+
+
+# --- Account recovery (password-based transfer between accounts) ---
+
+TRANSFERABLE_FIELDS = [
+    "balance", "gems", "kills", "pfp_file_id", "protected_until",
+    "premium_until", "friends", "redeemed_coupons",
+]
+
+
+async def set_password(user_id: int, password: str):
+    await users.update_one({"_id": user_id}, {"$set": {"recovery_password": password}})
+
+
+async def get_password(user_id: int):
+    user = await users.find_one({"_id": user_id})
+    return user.get("recovery_password") if user else None
+
+
+async def transfer_account(old_id: int, new_id: int):
+    """Wipes new_id's current game data and replaces it with old_id's, then locks old_id out."""
+    old_user = await users.find_one({"_id": old_id})
+    if not old_user:
+        return False
+
+    update_fields = {field: old_user.get(field) for field in TRANSFERABLE_FIELDS if field in old_user}
+    await users.update_one({"_id": new_id}, {"$set": update_fields})
+    await users.update_one({"_id": old_id}, {"$set": {"recovery_password": None, "transferred": True}})
+    return True
