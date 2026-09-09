@@ -30,6 +30,17 @@ from handlers import (
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("bts_bot")
 
+SMALL_CAPS_MAP = str.maketrans(
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
+    "ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘǫʀꜱᴛᴜᴠᴡxʏᴢᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘǫʀꜱᴛᴜᴠᴡxʏᴢ",
+)
+
+
+def sc(text: str) -> str:
+    """Convert plain ASCII letters to small-caps unicode for a stylized look."""
+    return text.translate(SMALL_CAPS_MAP)
+
+
 CATEGORY_TEXTS = {
     "whisper": (
         "🤫 WHISPER\n\n"
@@ -108,18 +119,18 @@ CATEGORY_TEXTS = {
 }
 
 CATEGORY_LABELS = {
-    "whisper": "🤫 Whisper",
-    "management": "👮 Management",
-    "ownership": "👑 Ownership",
-    "premium": "💗 Premium",
-    "gems": "💎 Gems",
-    "powers": "🦅 Powers",
-    "economy": "💰 Economy",
-    "games": "🕹️ Games",
-    "friends": "🧸 Friends",
-    "coupons": "🎟️ Coupons",
-    "interactions": "💞 Interactions",
-    "utilities": "🔧 Utilities",
+    "whisper": f"🤫 {sc('Whisper')}",
+    "management": f"👮 {sc('Management')}",
+    "ownership": f"👑 {sc('Ownership')}",
+    "premium": f"💗 {sc('Premium')}",
+    "gems": f"💎 {sc('Gems')}",
+    "powers": f"🦅 {sc('Powers')}",
+    "economy": f"💰 {sc('Economy')}",
+    "games": f"🕹️ {sc('Games')}",
+    "friends": f"🧸 {sc('Friends')}",
+    "coupons": f"🎟️ {sc('Coupons')}",
+    "interactions": f"💞 {sc('Interactions')}",
+    "utilities": f"🔧 {sc('Utilities')}",
 }
 
 
@@ -127,16 +138,16 @@ CATEGORY_LABELS = {
 
 def build_start_menu() -> InlineKeyboardMarkup:
     rows = [
-        [InlineKeyboardButton("🍀 BTS FEATURES", callback_data="menu:features")],
+        [InlineKeyboardButton(f"🍀 {sc('BTS FEATURES')}", callback_data="menu:features")],
         [
-            InlineKeyboardButton("👥 GROUPS", callback_data="menu:groups"),
-            InlineKeyboardButton("💸 PROMOTER", url="https://t.me/"),
+            InlineKeyboardButton(f"👥 {sc('GROUPS')}", callback_data="menu:groups"),
+            InlineKeyboardButton(f"💸 {sc('PROMOTER')}", url="https://t.me/"),
         ],
         [
-            InlineKeyboardButton("📢 UPDATES", url="https://t.me/"),
-            InlineKeyboardButton("🎮 GAMES", callback_data="menu:games"),
+            InlineKeyboardButton(f"📢 {sc('UPDATES')}", url="https://t.me/"),
+            InlineKeyboardButton(f"🎮 {sc('GAMES')}", callback_data="menu:games"),
         ],
-        [InlineKeyboardButton("➕ ADD ME TO YOUR GROUP", url="https://t.me/your_bts_bot?startgroup=true")],
+        [InlineKeyboardButton(f"➕ {sc('ADD ME TO YOUR GROUP')}", url="https://t.me/your_bts_bot?startgroup=true")],
     ]
     return InlineKeyboardMarkup(rows)
 
@@ -150,19 +161,8 @@ def build_features_menu() -> InlineKeyboardMarkup:
     for i in range(0, len(keys), 2):
         pair = keys[i : i + 2]
         rows.append([InlineKeyboardButton(CATEGORY_LABELS[k], callback_data=f"menu:{k}") for k in pair])
-    rows.append([InlineKeyboardButton("⬅️ Back", callback_data="menu:back")])
+    rows.append([InlineKeyboardButton(f"⬅️ {sc('Back')}", callback_data="menu:back")])
     return InlineKeyboardMarkup(rows)
-
-
-SMALL_CAPS_MAP = str.maketrans(
-    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
-    "ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘǫʀꜱᴛᴜᴠᴡxʏᴢᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘǫʀꜱᴛᴜᴠᴡxʏᴢ",
-)
-
-
-def sc(text: str) -> str:
-    """Convert plain ASCII letters to small-caps unicode for a stylized look."""
-    return text.translate(SMALL_CAPS_MAP)
 
 
 async def build_start_text(tg_user) -> str:
@@ -206,23 +206,23 @@ async def menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # "BTS FEATURES" tapped -> show the 12-category grid
     if data == "features":
         await query.edit_message_text(
-            "ℹ️ ABOUT BTS\n\nClick the buttons below to know more about BTS features.",
+            f"ℹ️ {sc('ABOUT BTS')}\n\n{sc('Click the buttons below to know more about BTS features.')}",
             reply_markup=build_features_menu(),
         )
         return
 
     # "GAMES" tapped from the level-1 menu -> same as the games category info
     if data == "groups":
-        text = "👥 Use /groups in chat to see currently featured groups, or /setgroup if you're top 5 richest."
+        text = f"👥 {sc('Use /groups in chat to see currently featured groups, or /setgroup if you are top 5 richest.')}"
         await query.edit_message_text(
-            text, reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Back", callback_data="menu:back")]])
+            text, reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton(f"⬅️ {sc('Back')}", callback_data="menu:back")]])
         )
         return
 
     # A specific category from the features grid
     text = CATEGORY_TEXTS.get(data, f"{CATEGORY_LABELS.get(data, data)}: no info available.")
     back_button = InlineKeyboardMarkup(
-        [[InlineKeyboardButton("⬅️ Back to features", callback_data="menu:features")]]
+        [[InlineKeyboardButton(f"⬅️ {sc('Back to features')}", callback_data="menu:features")]]
     )
     await query.edit_message_text(text, reply_markup=back_button)
 
