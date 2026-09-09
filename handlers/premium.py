@@ -1,4 +1,5 @@
 import datetime
+import os
 
 from telegram import Update
 from telegram.ext import ContextTypes
@@ -7,6 +8,7 @@ import database as db
 
 PREMIUM_COST_GEMS = 50
 PREMIUM_DURATION_DAYS = 30
+PREMIUM_IMAGE_PATH = os.path.join(os.path.dirname(__file__), "..", "assets", "premium_features.png")
 
 
 async def buy_premium(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -45,9 +47,13 @@ async def premium_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def premium_info(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    text = (
+    caption = (
         "💗 PREMIUM\n\n"
         f"/buypremium - {PREMIUM_COST_GEMS} gems for {PREMIUM_DURATION_DAYS} days\n"
-        "/premiumstatus - check your premium expiry\n"
+        "/premiumstatus - check your premium expiry"
     )
-    await update.message.reply_text(text)
+    if os.path.exists(PREMIUM_IMAGE_PATH):
+        with open(PREMIUM_IMAGE_PATH, "rb") as photo:
+            await update.message.reply_photo(photo, caption=caption)
+    else:
+        await update.message.reply_text(caption)

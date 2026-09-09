@@ -146,6 +146,19 @@ Rules enforced in code:
   show it back to the user — this is an in-bot game code, not a real credential, but tell
   players not to reuse a real password here.
 
+## Premium features poster
+
+`/premium` (and the "Premium" button in `/start`) sends `assets/premium_features.png` — a
+generated BTS-branded comparison card (Normal vs Premium), styled after BAKA's version.
+
+The image is already committed to the repo, so nothing extra is needed to deploy it. If you
+want to edit the table (prices, rows, colors), regenerate it locally:
+```bash
+pip install pillow --break-system-packages
+python3 generate_premium_image.py
+```
+This overwrites `assets/premium_features.png` — commit the new file afterwards.
+
 ## Notes
 
 

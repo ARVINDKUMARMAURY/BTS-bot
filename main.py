@@ -1,5 +1,6 @@
 import logging
 import html
+import os
 
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.constants import ParseMode
@@ -250,6 +251,21 @@ async def menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.edit_message_text(
             text, reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton(f"⬅️ {sc('Back')}", callback_data="menu:back")]])
         )
+        return
+
+    # "PREMIUM" tapped -> send the premium features poster image
+    if data == "premium":
+        back_button = InlineKeyboardMarkup(
+            [[InlineKeyboardButton(f"⬅️ {sc('Back to features')}", callback_data="menu:features")]]
+        )
+        caption = CATEGORY_TEXTS["premium"]
+        if os.path.exists(premium.PREMIUM_IMAGE_PATH):
+            with open(premium.PREMIUM_IMAGE_PATH, "rb") as photo:
+                await context.bot.send_photo(
+                    chat_id=query.message.chat_id, photo=photo, caption=caption, reply_markup=back_button
+                )
+        else:
+            await context.bot.send_message(chat_id=query.message.chat_id, text=caption, reply_markup=back_button)
         return
 
     # A specific category from the features grid
